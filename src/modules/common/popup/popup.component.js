@@ -8,43 +8,53 @@ export default class PopupComponent extends Component {
         super(props);
 
         this.state = {
-            visible: props.visible
+            visible: props.visible,
         };
+
+        this.hidePopup = this.hidePopup.bind(this);
     }
 
     componentWillReceiveProps(props) {
-        this.setState(state => Object.assign({}, state, {visible: props.visible}));
+        this.setState((state) => ({
+            ...state,
+            visible: props.visible,
+        }));
     }
 
     /**
      * Hides a popup
      *
      * @method hidePopup
+     * @param {SyntheticEvent}
      * @memberof PopupComponent
      */
-    hidePopup() {
-        this.setState(state => Object.assign({}, state, {visible: false}));
+    hidePopup(event) {
+        event.stopPropagation();
+
+        this.setState((state) => ({
+            ...state,
+            visible: false,
+        }));
 
         this.props.onClose();
     }
 
     render() {
-        const attrs = {
-            className: 'c-popup',
-            hidden: !this.state.visible
-        };
+        const { visible } = this.state;
+        const { title, children } = this.props;
+        const hidden = !visible;
 
         return (
-            <div {...attrs}>
+            <div className="c-popup" hidden={hidden}>
                 <div className="c-popup__header">
-                    <div className="c-popup__title">{this.props.title}</div>
-                    <div className="c-popup__close" onClick={this.hidePopup.bind(this)}>
+                    <div className="c-popup__title">{title}</div>
+                    <div className="c-popup__close" onClick={this.hidePopup}>
                         <svg className="ez-icon">
-                            <use xlinkHref="/bundles/ezplatformadminui/img/ez-icons.svg#discard"></use>
+                            <use xlinkHref="/bundles/ezplatformadminui/img/ez-icons.svg#discard" />
                         </svg>
                     </div>
                 </div>
-                <div className="c-popup__content">{this.props.children}</div>
+                <div className="c-popup__content">{children}</div>
             </div>
         );
     }
@@ -54,9 +64,9 @@ PopupComponent.propTypes = {
     title: PropTypes.string.isRequired,
     children: PropTypes.node.isRequired,
     visible: PropTypes.bool.isRequired,
-    onClose: PropTypes.func
+    onClose: PropTypes.func,
 };
 
 PopupComponent.defaultProps = {
-    onClose: () => {}
+    onClose: () => {},
 };

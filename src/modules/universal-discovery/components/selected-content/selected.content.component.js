@@ -11,13 +11,12 @@ export default class SelectedContentComponent extends Component {
         super(props);
 
         this.state = {
-            items: [],
             isPopupVisible: false,
         };
-    }
 
-    componentWillReceiveProps(props) {
-        this.setState((state) => Object.assign({}, state, { items: props.items }));
+        this.togglePopup = this.togglePopup.bind(this);
+        this.hidePopup = this.hidePopup.bind(this);
+        this.renderSelectedItem = this.renderSelectedItem.bind(this);
     }
 
     /**
@@ -27,7 +26,10 @@ export default class SelectedContentComponent extends Component {
      * @memberof SelectedContentComponent
      */
     togglePopup() {
-        this.setState((state) => Object.assign({}, state, { isPopupVisible: !state.isPopupVisible }));
+        this.setState((state) => ({
+            ...state,
+            isPopupVisible: !state.isPopupVisible,
+        }));
     }
 
     /**
@@ -37,7 +39,10 @@ export default class SelectedContentComponent extends Component {
      * @memberof SelectedContentComponent
      */
     hidePopup() {
-        this.setState((state) => Object.assign({}, state, { isPopupVisible: false }));
+        this.setState((state) => ({
+            ...state,
+            isPopupVisible: false,
+        }));
     }
 
     /**
@@ -49,13 +54,15 @@ export default class SelectedContentComponent extends Component {
      * @memberof SelectedContentComponent
      */
     renderSelectedItem(item) {
+        const { onItemRemove, contentTypesMap, labels } = this.props;
+
         return (
             <SelectedContentItemComponent
                 key={item.remoteId}
                 data={item}
-                onRemove={this.props.onItemRemove}
-                contentTypesMap={this.props.contentTypesMap}
-                labels={this.props.labels.selectedContentItem}
+                onRemove={onItemRemove}
+                contentTypesMap={contentTypesMap}
+                labels={labels.selectedContentItem}
             />
         );
     }
@@ -68,15 +75,16 @@ export default class SelectedContentComponent extends Component {
      * @memberof SelectedContentComponent
      */
     renderLimitLabel() {
-        let limitLabel = '';
+        const { itemsLimit, labels } = this.props;
 
-        if (this.props.itemsLimit) {
-            const limit = this.props.labels.selectedContent.limit.replace('{items}', this.props.itemsLimit);
-
-            limitLabel = <small className="c-selected-content__label--limit">{limit}</small>;
+        if (!itemsLimit) {
+            return null;
         }
 
-        return limitLabel;
+        const limitInfoTemplate = labels.selectedContent.limit;
+        const limitInfo = limitInfoTemplate.replace('{items}', itemsLimit);
+
+        return <small className="c-selected-content__label--limit">{limitInfo}</small>;
     }
 
     /**
@@ -87,13 +95,18 @@ export default class SelectedContentComponent extends Component {
      * @memberof SelectedContentComponent
      */
     renderSelectedItems() {
-        if (!this.props.items.length) {
+        const { items } = this.props;
+
+        if (!items.length) {
             return null;
         }
 
+        const { isPopupVisible } = this.state;
+        const title = this.getTitle();
+
         return (
-            <SelectedContentPopupComponent title={this.getTitle()} visible={this.state.isPopupVisible} onClose={this.hidePopup.bind(this)}>
-                {this.props.items.map(this.renderSelectedItem.bind(this))}
+            <SelectedContentPopupComponent title={title} visible={isPopupVisible} onClose={this.hidePopup}>
+                {items.map(this.renderSelectedItem)}
             </SelectedContentPopupComponent>
         );
     }
@@ -106,27 +119,25 @@ export default class SelectedContentComponent extends Component {
      * @memberof SelectedContentComponent
      */
     getTitle() {
-        let title = this.props.labels.selectedContent.confirmedItems;
-        const total = this.props.items.length;
+        const { labels, items } = this.props;
+        const baseTitle = labels.selectedContent.confirmedItems;
+        const total = items.length;
+        const totalInfo = !!total ? `(${total})` : '';
 
-        if (total) {
-            title = `${title} (${total})`;
-        }
-
-        return title;
+        return `${baseTitle} ${totalInfo}`;
     }
 
     render() {
-        const titles = this.props.items.map((item) => item.ContentInfo.Content.Name).join(', ');
+        const { items, labels } = this.props;
+        const titles = items.map((item) => item.ContentInfo.Content.Name).join(', ');
+        const contentNames = titles.length ? titles : labels.selectedContent.noConfirmedContent;
 
         return (
-            <div className="c-selected-content">
+            <div className="c-selected-content" onClick={this.togglePopup}>
                 {this.renderSelectedItems()}
                 <strong className="c-selected-content__title">{this.getTitle()}</strong>
                 {this.renderLimitLabel()}
-                <div className="c-selected-content__content-names" onClick={this.togglePopup.bind(this)}>
-                    {titles.length ? titles : this.props.labels.selectedContent.noConfirmedContent}
-                </div>
+                <div className="c-selected-content__content-names">{contentNames}</div>
             </div>
         );
     }

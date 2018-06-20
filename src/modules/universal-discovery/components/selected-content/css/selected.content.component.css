@@ -1,6 +1,11 @@
 .c-selected-content {
     position: relative;
     z-index: 1;
+    padding: 5px;
+    display: inline-block;
+    border-radius: 4px;
+    background-color: #e3e3e3;
+    cursor: pointer;
 }
 
 .c-selected-content__title {
@@ -9,7 +14,7 @@
 }
 
 .c-selected-content__content-names {
-    width: 320px;
+    max-width: 320px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
