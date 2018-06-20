@@ -14,11 +14,11 @@ export default class PopupComponent extends Component {
         this.hidePopup = this.hidePopup.bind(this);
     }
 
-    componentWillReceiveProps(props) {
-        this.setState((state) => ({
-            ...state,
-            visible: props.visible,
-        }));
+    static getDerivedStateFromProps(nextProps, prevState) {
+        return  {
+            ...prevState,
+            visible: nextProps.visible,
+        };
     }
 
     /**
